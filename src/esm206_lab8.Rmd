@@ -11,7 +11,6 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 # Attach packages:
 library(here)
 library(tidyverse)
-library(janitor)
 library(corrplot)
 library(stargazer)
 library(broom)
@@ -60,6 +59,84 @@ Explore the relationship (visual data exploration) between square footage and ho
 Change the point color by city, and the point shape by sale status.
 ```{r}
 ggplot(homes_sub, aes(x = SqFt, y = Price)) +
-  geom_point(aes(color = City, shape = Status))
+  geom_point(aes(color = City, shape = Status)) +
+  geom_smooth(method = lm)
 ```
+
+## Model relationship with home price as DV
+
+```{r}
+# This is a saturated model because it includes so many variables
+
+homes_lm1 <- lm(Price ~ City + Bedrooms + Bathrooms + SqFt + PricePerSqFt + Status, 
+                data = homes_sub)
+
+# Make a subset that only contains the quantitative variables
+homes_quant <- homes_sub %>% 
+  select(Price:PricePerSqFt)
+
+homes_cor <- cor(homes_quant)
+homes_cor # Shows you the correlation between these variables. Hopefully, it is a strong positive correlation 
+
+corrplot(homes_cor, method = 'ellipse') # This is a visual representation of the information above
+
+# How would I explore diagnostic plots?
+plot(homes_lm1)
+```
+
+Try another model where we simplify this a bit:
+
+- City
+- SqFt
+- Status 
+
+```{r}
+homes_lm2 <- lm(Price ~ City + SqFt + Status, 
+                data = homes_sub)
+
+# Or just call this in the console
+homes_lm2
+
+plot(homes_lm2)
+```
+
+Find the AIC value of each model:
+
+```{r}
+AIC(homes_lm1)
+AIC(homes_lm2)
+```
+
+Try another permutation of this model that you think might make sense, check out and compare the model fit, outputs and AIC value.
+
+```{r}
+
+homes_lm3 <- lm(Price ~ City + SqFt + Status + Bedrooms, 
+                data = homes_sub)
+
+homes_lm3
+plot(homes_lm3)
+AIC(homes_lm3)
+```
+
+Use `modelsummary` to show model outputs side-by-side:
+
+
+If you use modelsummary to return model outputs of multiple models, it wants you to feed it to it as a list.
+
+```{r}
+modelsummary(list(homes_lm1, homes_lm2, homes_lm3))
+```
+
+## Start making predictions with this model 
+
+
+Use `broom::augment()` 
+
+```{r}
+homes_predicted <- augment(homes_lm1)
+```
+
+Use the `predict()` function to try out your model on new scenarios that you create. 
+
 

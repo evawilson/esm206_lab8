@@ -1,0 +1,65 @@
+---
+title: "esm206_lab8"
+author: "Eva Wilson"
+date: "11/15/2021"
+output: html_document
+---
+
+```{r setup, include = TRUE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+# Attach packages:
+library(here)
+library(tidyverse)
+library(janitor)
+library(corrplot)
+library(stargazer)
+library(broom)
+library(modelsummary)
+```
+
+```{r}
+# Read in the data:
+homes <- read.csv(here("data", "slo_homes.csv"))
+```
+
+Make a subset called homes_sub that only contains observations (rows) where the city is:
+
+- San Luis Obispo
+- Arroyo Grande
+- Atascadero
+- Santa Maria-Orcutt
+
+```{r}
+homes_sub <- homes %>% 
+  filter(City %in% c("San Luis Obispo",
+         "Arroyo Grande",
+         "Atascadero",
+         "Santa Maria-Orcutt"))
+```
+
+Summary statistics (home price, based on city and sale status):
+
+- Find and return in a nice summary table the mean and the standard deviation of home price, grouped by city and sale status.
+
+```{r, include = FALSE, eval = FALSE}
+
+# Note - eval = FALSE, does not even evaluate code (likely because it takes so long, or because you are trying to troubleshoot one line of code at a time to figure out what is going wrong)
+
+homes_summary <- homes_sub %>% 
+  group_by(City, Status) %>% 
+  summarize(mean_price = mean(Price, na.rm = TRUE),
+            sd_price = sd(Price, na.rm = TRUE))
+
+ggplot(homes_sub, aes(x = Price)) + # Similar to histogram, just uses kernal smoothing to see measure of densities
+  geom_density(aes(color = City, fill = City), alpha = 0.2)+
+  scale_x_continuous(limits = c(0, 3e6)) # generic function to change the conditions about the x axis if it is a continuous variable
+```
+
+Explore the relationship (visual data exploration) between square footage and home price. 
+Change the point color by city, and the point shape by sale status.
+```{r}
+ggplot(homes_sub, aes(x = SqFt, y = Price)) +
+  geom_point(aes(color = City, shape = Status))
+```
+
